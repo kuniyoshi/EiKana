@@ -23,17 +23,17 @@ final class IMEManager {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
-            callback: { (_, event, _, _) -> Unmanaged<CGEvent>? in
+            callback: { (_, _, event, _) -> Unmanaged<CGEvent>? in
                 guard let event = event else { return nil }
                 
                 let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-                let flags = event.getIntegerValueField(.keyboardEventFlags)
+                let flags = event.flags
                 
                 // Check for left command key (55) and right command key (54)
-                if keyCode == 55 && (flags & (1 << 24)) != 0 { // Left command key
+                if keyCode == 55 && (flags.rawValue & (1 << 24)) != 0 { // Left command key
                     self.switchToEisuMode()
                     return nil
-                } else if keyCode == 54 && (flags & (1 << 24)) != 0 { // Right command key
+                } else if keyCode == 54 && (flags.rawValue & (1 << 24)) != 0 { // Right command key
                     self.switchToKanaMode()
                     return nil
                 }
