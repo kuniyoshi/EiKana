@@ -17,7 +17,7 @@ final class IMEManager {
     }
     
     private func setupEventTap() {
-        let mask = (1 << CGEventType.keyDown.rawValue)
+        let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
         eventTap = CGEvent.tapCreate(
             tap: .cghidEventTap,
             place: .headInsertEventTap,
