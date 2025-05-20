@@ -16,29 +16,55 @@ final class IMEManager {
         }
     }
     
+    private var leftCommandKeyPressed = false
+    private var rightCommandKeyPressed = false
+    private var otherKeyPressed = false
+    
     private func setupEventTap() {
-        let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
+        let mask = CGEventMask(1 << CGEventType.keyDown.rawValue | 1 << CGEventType.keyUp.rawValue)
         eventTap = CGEvent.tapCreate(
             tap: .cghidEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
-            callback: { (_, event, _, _) -> Unmanaged<CGEvent>? in
-                guard let event = event else { return nil }
+            callback: { [weak self] (_, event, _, _) -> Unmanaged<CGEvent>? in
+                guard let self = self else { return Unmanaged.passRetained(event) }
                 
                 let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
                 let flags = event.getIntegerValueField(.keyboardEventFlags)
+                let isKeyDown = event.type == .keyDown
+                let isKeyUp = event.type == .keyUp
                 
-                // Check for left command key (55) and right command key (54)
-                if keyCode == 55 && (flags & (1 << 24)) != 0 { // Left command key
-                    self.switchToEisuMode()
-                    return nil
-                } else if keyCode == 54 && (flags & (1 << 24)) != 0 { // Right command key
-                    self.switchToKanaMode()
-                    return nil
+                if keyCode == 55 {
+                    if isKeyDown {
+                        self.leftCommandKeyPressed = true
+                        self.otherKeyPressed = false
+                    } else if isKeyUp && self.leftCommandKeyPressed && !self.otherKeyPressed {
+                        self.leftCommandKeyPressed = false
+                        self.switchToEisuMode()
+                        return nil // Consume the event only when we switch modes
+                    } else if isKeyUp {
+                        self.leftCommandKeyPressed = false
+                    }
+                }
+                // Right command key (54)
+                else if keyCode == 54 {
+                    if isKeyDown {
+                        self.rightCommandKeyPressed = true
+                        self.otherKeyPressed = false
+                    } else if isKeyUp && self.rightCommandKeyPressed && !self.otherKeyPressed {
+                        self.rightCommandKeyPressed = false
+                        self.switchToKanaMode()
+                        return nil // Consume the event only when we switch modes
+                    } else if isKeyUp {
+                        self.rightCommandKeyPressed = false
+                    }
+                }
+                else if isKeyDown {
+                    self.otherKeyPressed = true
                 }
                 
-                return nil
+                return Unmanaged.passRetained(event)
             },
             userInfo: nil
         )
