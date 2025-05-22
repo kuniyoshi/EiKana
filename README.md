@@ -1,10 +1,19 @@
 # EiKana
 
-Stateless eisu kana switcher
+「英数」と「かな」とを切り替えます
 
 # Usage
 
-1. Type left command to set eisu mode
-2. Type right command to set kana mode
+1. 左コマンドキーを空打ちして英数にします
+2. 右コマンドキーを空打ちしてかなにします
 
-For each command is just command only.  No other alphabet keys are pressed. 
+それぞれのコマンドキーはモディファイアとしてではなく、
+単体で空打ちします。
+
+# Specification
+
+- IME の状態を「英数」にしたり「かな」にしたりします
+- 通常、コマンドキーはモディファイアですが、このアプリでは
+  コマンドキー単体で機能します。もちろん通常のモディファイア
+  としての機能を制限しません
+- アプリアイコンはドックに表示しません。上段のメニーにだけ表示します
