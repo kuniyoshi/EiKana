@@ -1,6 +1,8 @@
 import Foundation
 import Carbon
 import Carbon.HIToolbox
+import CoreFoundation
+
 
 final class IMEManager {
     private var runLoopSource: CFRunLoopSource?
@@ -61,6 +63,7 @@ final class IMEManager {
 
     init() {
         setupEventTap()
+        printAllInputSourceIDs()
     }
 
     deinit {
@@ -96,15 +99,75 @@ final class IMEManager {
 
     private func switchToEisuMode() {
         print("set eisu mode")
-        let event = CGEvent(source: nil)
-        event?.setIntegerValueField(.keyboardEventKeycode, value: 0x30) // 0x30 is the key code for switching to eisu mode
-        event?.post(tap: .cghidEventTap)
+
+
+        if let sourceList = TISCreateInputSourceList(
+            [
+                kTISPropertyInputSourceType: kTISTypeKeyboardInputMode,
+                kTISPropertyInputSourceID: "com.apple.inputmethod.Kotoeri.KanaTyping.Roman" as CFString
+            ] as CFDictionary,
+            false
+        )?.takeRetainedValue() as? [TISInputSource],
+           let source = sourceList.first {
+
+            let isEnabled = TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled) as? Bool ?? false
+            print("ABC source isEnabled:", isEnabled)
+
+            TISSelectInputSource(source)
+        } else {
+            print("ABC input source not found")
+        }
     }
 
     private func switchToKanaMode() {
         print("set kana mode")
-        let event = CGEvent(source: nil)
-        event?.setIntegerValueField(.keyboardEventKeycode, value: 0x31) // 0x31 is the key code for switching to kana mode
-        event?.post(tap: .cghidEventTap)
+        if let sourceList = TISCreateInputSourceList(
+            [
+                kTISPropertyInputSourceType: kTISTypeKeyboardInputMode,
+                kTISPropertyInputSourceID: "com.apple.inputmethod.Kotoeri.KanaTyping.Japanese" as CFString
+            ] as CFDictionary,
+            false
+        )?.takeRetainedValue() as? [TISInputSource],
+           let source = sourceList.first {
+
+            let isEnabled = TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled) as? Bool ?? false
+            print("Kana source isEnabled:", isEnabled)
+
+            TISSelectInputSource(source)
+        } else {
+            print("Kana input source not found")
+        }
+    }
+    func printAllInputSourceIDs() {
+        guard let list = TISCreateInputSourceList(nil, false)?
+                .takeRetainedValue() as? [TISInputSource] else {
+            print("Could not retrieve input source list")
+            return
+        }
+
+        for source in list {
+            // Helper closure to safely extract a CFString property
+            func string(for key: CFString) -> String {
+                guard let rawPtr = TISGetInputSourceProperty(source, key) else {
+                    return "-"
+                }
+
+                // TISGetInputSourceProperty returns an UnsafeMutableRawPointer; convert to Unmanaged
+                let unmanaged = Unmanaged<CFTypeRef>.fromOpaque(rawPtr)
+                let cfValue = unmanaged.takeUnretainedValue()
+
+                guard CFGetTypeID(cfValue) == CFStringGetTypeID(),
+                      let str = cfValue as? String else {
+                    return "-"
+                }
+                return str
+            }
+
+            let idStr   = string(for: kTISPropertyInputSourceID)
+            let modeStr = string(for: kTISPropertyInputModeID)
+            let nameStr = string(for: kTISPropertyLocalizedName)
+
+            print("ID: \(idStr)\tMode: \(modeStr)\tName: \(nameStr)")
+        }
     }
 }
