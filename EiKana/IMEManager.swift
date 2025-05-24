@@ -2,6 +2,15 @@ import Foundation
 import Carbon
 
 final class IMEManager {
+    private static func callback(
+        proxy: CGEventTapProxy,
+        type: CGEventType,
+        event: CGEvent,
+        refcon: UnsafeMutableRawPointer?
+    ) -> Unmanaged<CGEvent>? {
+        return nil
+    }
+
     private var eventTap: CFMachPort?
     private let queue = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, nil, 0)
     
@@ -15,7 +24,7 @@ final class IMEManager {
             CFMachPortInvalidate(eventTap)
         }
     }
-    
+
     private func setupEventTap() {
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
         eventTap = CGEvent.tapCreate(
@@ -23,22 +32,8 @@ final class IMEManager {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
-            callback: { (_, _, event, _) -> Unmanaged<CGEvent>? in
-                guard let event = event else { return nil }
-                
-                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-                let flags = event.flags
-                
-                // Check for left command key (55) and right command key (54)
-                if keyCode == 55 && (flags.rawValue & (1 << 24)) != 0 { // Left command key
-                    self.switchToEisuMode()
-                    return nil
-                } else if keyCode == 54 && (flags.rawValue & (1 << 24)) != 0 { // Right command key
-                    self.switchToKanaMode()
-                    return nil
-                }
-                
-                return nil
+            callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+                return IMEManager.callback(proxy: proxy, type: type, event: event, refcon: refcon)
             },
             userInfo: nil
         )
