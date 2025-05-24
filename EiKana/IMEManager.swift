@@ -1,6 +1,5 @@
 import Foundation
 import Carbon
-import Carbon.HIToolbox
 import CoreFoundation
 
 final class IMEManager {
