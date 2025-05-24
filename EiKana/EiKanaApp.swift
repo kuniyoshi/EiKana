@@ -1,10 +1,3 @@
-//
-//  EiKanaApp.swift
-//  EiKana
-//
-//  Created by Koji Kuniyoshi on 2025-05-19.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -14,7 +7,7 @@ struct EiKanaApp: App {
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Item.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
