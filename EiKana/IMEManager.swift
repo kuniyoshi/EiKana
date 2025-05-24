@@ -55,7 +55,6 @@ final class IMEManager {
 
     init() {
         setupEventTap()
-        printAllInputSourceIDs()
     }
 
     deinit {
@@ -99,39 +98,6 @@ final class IMEManager {
         print("set kana mode")
         // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
         simulateKeyPress(104)
-    }
-
-    func printAllInputSourceIDs() {
-        guard let list = TISCreateInputSourceList(nil, false)?
-                .takeRetainedValue() as? [TISInputSource] else {
-            print("Could not retrieve input source list")
-            return
-        }
-
-        for source in list {
-            // Helper closure to safely extract a CFString property
-            func string(for key: CFString) -> String {
-                guard let rawPtr = TISGetInputSourceProperty(source, key) else {
-                    return "-"
-                }
-
-                // TISGetInputSourceProperty returns an UnsafeMutableRawPointer; convert to Unmanaged
-                let unmanaged = Unmanaged<CFTypeRef>.fromOpaque(rawPtr)
-                let cfValue = unmanaged.takeUnretainedValue()
-
-                guard CFGetTypeID(cfValue) == CFStringGetTypeID(),
-                      let str = cfValue as? String else {
-                    return "-"
-                }
-                return str
-            }
-
-            let idStr   = string(for: kTISPropertyInputSourceID)
-            let modeStr = string(for: kTISPropertyInputModeID)
-            let nameStr = string(for: kTISPropertyLocalizedName)
-
-            print("ID: \(idStr)\tMode: \(modeStr)\tName: \(nameStr)")
-        }
     }
 
     /// Simulate a hardware key press for the given virtual key code
