@@ -1,7 +1,27 @@
 import Foundation
 import Carbon
 import Carbon.HIToolbox
+import CoreFoundation
 
+private func postInputSourceChangedNotification() {
+    let center = CFNotificationCenterGetDistributedCenter()
+    CFNotificationCenterPostNotification(
+        center,
+        CFNotificationName("com.apple.inputSourceChanged" as CFString),
+        nil, nil, true
+    )
+}
+
+/// Simulate a hardware key press for the given virtual key code
+private func simulateKeyPress(_ keyCode: CGKeyCode) {
+    guard let source = CGEventSource(stateID: .hidSystemState) else { return }
+    // Key down
+    let down = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
+    down?.post(tap: .cghidEventTap)
+    // Key up
+    let up = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
+    up?.post(tap: .cghidEventTap)
+}
 
 final class IMEManager {
 
@@ -95,43 +115,14 @@ final class IMEManager {
     private func switchToEisuMode() {
         print("set eisu mode")
 
-
-        if let sourceList = TISCreateInputSourceList(
-            [
-                kTISPropertyInputSourceType: kTISTypeKeyboardInputMode,
-                kTISPropertyInputSourceID: "com.apple.inputmethod.Kotoeri.KanaTyping.Roman" as CFString
-            ] as CFDictionary,
-            false
-        )?.takeRetainedValue() as? [TISInputSource],
-           let source = sourceList.first {
-
-            let isEnabled = TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled) as? Bool ?? false
-            print("ABC source isEnabled:", isEnabled)
-
-            TISSelectInputSource(source)
-        } else {
-            print("ABC input source not found")
-        }
+        // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
+        simulateKeyPress(102)
     }
 
     private func switchToKanaMode() {
         print("set kana mode")
-        if let sourceList = TISCreateInputSourceList(
-            [
-                kTISPropertyInputSourceType: kTISTypeKeyboardInputMode,
-                kTISPropertyInputSourceID: "com.apple.inputmethod.Kotoeri.KanaTyping.Japanese" as CFString
-            ] as CFDictionary,
-            false
-        )?.takeRetainedValue() as? [TISInputSource],
-           let source = sourceList.first {
-
-            let isEnabled = TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled) as? Bool ?? false
-            print("Kana source isEnabled:", isEnabled)
-
-            TISSelectInputSource(source)
-        } else {
-            print("Kana input source not found")
-        }
+        // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
+        simulateKeyPress(104)
     }
     func printAllInputSourceIDs() {
         guard let list = TISCreateInputSourceList(nil, false)?
