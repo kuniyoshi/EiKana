@@ -1,10 +1,10 @@
 import Foundation
 import Carbon
 import Carbon.HIToolbox
-import CoreFoundation
 
 
 final class IMEManager {
+
     private var runLoopSource: CFRunLoopSource?
 
     private static func callback(
@@ -21,38 +21,33 @@ final class IMEManager {
 
             // Left Command key code is 0x37 on macOS
             let leftCommandKeyCode: CGKeyCode = 0x37
-            if keyCode == leftCommandKeyCode && flags.contains(.maskCommand) {
-                imeManager.switchToEisuMode()
-                return nil
+            if keyCode == leftCommandKeyCode {
+                if flags.contains(.maskCommand) {
+                    // press - do nothing
+                } else {
+                    // release - switch to Eisu
+                    imeManager.switchToEisuMode()
+                }
+                return Unmanaged.passUnretained(event)
             }
 
             // Right Command key code is 0x36 on macOS
             let rightCommandKeyCode: CGKeyCode = 0x36
-            if keyCode == rightCommandKeyCode && flags.contains(.maskCommand) {
-                imeManager.switchToKanaMode()
-                return nil
+            if keyCode == rightCommandKeyCode {
+                if flags.contains(.maskCommand) {
+                    // press - do nothing
+                } else {
+                    // release - switch to Kana
+                    imeManager.switchToKanaMode()
+                }
+                return Unmanaged.passUnretained(event)
             }
         }
         // Only interested in keyDown events
         if type == .keyDown {
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             print("key", keyCode)
-            let flags = event.flags
-            // Left Command key code is 0x37 on macOS
-            let leftCommandKeyCode: CGKeyCode = 0x37
-            // Detect if only the Command flag is set (no other modifiers)
-            if keyCode == leftCommandKeyCode && flags == .maskCommand {
-                // Handle the single Command key press
-                imeManager.switchToEisuMode() // or whichever method you want to call
-                return nil // swallow the event if desired
-            }
-            // Right Command key code is 0x36 on macOS
-            let rightCommandKeyCode: CGKeyCode = 0x36
-            if keyCode == rightCommandKeyCode && flags == .maskCommand {
-                // Handle the single right Command key press
-                imeManager.switchToKanaMode()
-                return nil // swallow the event if desired
-            }
+            return Unmanaged.passUnretained(event)
         }
         // Pass through all other events
         return Unmanaged.passUnretained(event)
@@ -78,7 +73,7 @@ final class IMEManager {
     private func setupEventTap() {
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue) | CGEventMask(1 << CGEventType.flagsChanged.rawValue)
         eventTap = CGEvent.tapCreate(
-            tap: .cghidEventTap,
+            tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: mask,
