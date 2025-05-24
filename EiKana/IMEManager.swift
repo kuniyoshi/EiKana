@@ -2,6 +2,13 @@ import Foundation
 import Carbon
 import CoreFoundation
 
+/**
+ Manages input method switching by intercepting Command key events.
+
+ - Installs an event tap to listen for keyDown and flagsChanged events.
+ - On left Command key release, switches to Eisu mode.
+ - On right Command key release, switches to Kana mode.
+ */
 final class IMEManager {
     private var runLoopSource: CFRunLoopSource?
 
