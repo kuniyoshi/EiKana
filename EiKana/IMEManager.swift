@@ -8,6 +8,7 @@ final class IMEManager {
         event: CGEvent,
         refcon: UnsafeMutableRawPointer?
     ) -> Unmanaged<CGEvent>? {
+        let imeManager = Unmanaged<IMEManager>.fromOpaque(refcon!).takeUnretainedValue()
         return nil
     }
 
@@ -35,7 +36,7 @@ final class IMEManager {
             callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
                 return IMEManager.callback(proxy: proxy, type: type, event: event, refcon: refcon)
             },
-            userInfo: nil
+            userInfo: Unmanaged.passUnretained(self).toOpaque()
         )
         
         if let eventTap = eventTap {
