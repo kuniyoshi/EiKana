@@ -4,7 +4,7 @@ import SwiftData
 @main
 struct EiKanaApp: App {
     private let imeManager = IMEManager()
-    
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self
