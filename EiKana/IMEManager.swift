@@ -3,28 +3,6 @@ import Carbon
 import CoreFoundation
 
 final class IMEManager {
-
-    /// Post a distributed notification that the input source has changed
-    private func postInputSourceChangedNotification() {
-        let center = CFNotificationCenterGetDistributedCenter()
-        CFNotificationCenterPostNotification(
-            center,
-            CFNotificationName("com.apple.inputSourceChanged" as CFString),
-            nil, nil, true
-        )
-    }
-
-    /// Simulate a hardware key press for the given virtual key code
-    private func simulateKeyPress(_ keyCode: CGKeyCode) {
-        guard let source = CGEventSource(stateID: .hidSystemState) else { return }
-        // Key down
-        CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)?
-            .post(tap: .cghidEventTap)
-        // Key up
-        CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)?
-            .post(tap: .cghidEventTap)
-    }
-
     private var runLoopSource: CFRunLoopSource?
 
     private static func callback(
@@ -113,17 +91,14 @@ final class IMEManager {
 
     private func switchToEisuMode() {
         print("set eisu mode")
-
         // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
         simulateKeyPress(102)
-        postInputSourceChangedNotification()
     }
 
     private func switchToKanaMode() {
         print("set kana mode")
         // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
         simulateKeyPress(104)
-        postInputSourceChangedNotification()
     }
 
     func printAllInputSourceIDs() {
@@ -157,5 +132,16 @@ final class IMEManager {
 
             print("ID: \(idStr)\tMode: \(modeStr)\tName: \(nameStr)")
         }
+    }
+
+    /// Simulate a hardware key press for the given virtual key code
+    private func simulateKeyPress(_ keyCode: CGKeyCode) {
+        guard let source = CGEventSource(stateID: .hidSystemState) else { return }
+        // Key down
+        CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)?
+            .post(tap: .cghidEventTap)
+        // Key up
+        CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)?
+            .post(tap: .cghidEventTap)
     }
 }
