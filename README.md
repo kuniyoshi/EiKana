@@ -1,5 +1,7 @@
 # EiKana
 
+[![Xcode - Build and Analyze](https://github.com/kuniyoshi/EiKana/actions/workflows/objective-c-xcode.yml/badge.svg)](https://github.com/kuniyoshi/EiKana/actions/workflows/objective-c-xcode.yml)
+
 「英数」と「かな」とを切り替えます
 
 # Usage
