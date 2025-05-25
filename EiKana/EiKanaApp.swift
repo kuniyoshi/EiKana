@@ -2,8 +2,10 @@ import SwiftUI
 import SwiftData
 import AppKit
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var statusItem: NSStatusItem?
+    private var statusItem: NSStatusItem?
+    private var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -15,9 +17,43 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 accessibilityDescription: Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
             )
             let menu = NSMenu()
+            menu.addItem(NSMenuItem(title: "Edit…", action: #selector(showWindow), keyEquivalent: "e"))
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
             statusItem?.menu = menu
         }
+    }
+
+    @objc
+    private func toggleWindow() {
+        if let window = window, window.isVisible {
+            window.orderOut(nil) // すでに表示中なら隠す
+            return
+        }
+
+        if window == nil {
+            let contentView = ContentView()
+                .environment(\.modelContext, EiKanaApp.sharedModelContainer.mainContext)
+            let newWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 400, height: 520),
+                styleMask: [.titled, .closable, .miniaturizable],
+                backing: .buffered,
+                defer: false
+            )
+            newWindow.isReleasedWhenClosed = false
+            newWindow.title = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "App"
+            newWindow.contentView = NSHostingView(rootView: contentView)
+            window = newWindow
+        }
+
+        window!.center()
+        window!.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc
+    private func showWindow() {
+        toggleWindow()
     }
 
     @objc func quitApp() {
@@ -25,10 +61,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+@Model
+class PreferenceData {
+    init() {
+    }
+}
+
+
 @main
 struct EiKanaApp: App {
-    private let imeManager = IMEManager()
+    static var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            PreferenceData.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+
+    private let imeManager = IMEManager()
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var sharedModelContainer: ModelContainer = {
