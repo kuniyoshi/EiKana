@@ -11,7 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
             button.image = NSImage(
-                systemSymbolName: "square.and.line.vertical.and.square.filled",
+                systemSymbolName: "bird.fill",
                 accessibilityDescription: Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
             )
             let menu = NSMenu()
