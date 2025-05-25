@@ -95,14 +95,14 @@ final class IMEManager {
     }
 
     private func switchToEisuMode() {
-        print("set eisu mode")
-        // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
+        print("Set eisu mode")
+        // Set to eisu
         simulateKeyPress(102)
     }
 
     private func switchToKanaMode() {
-        print("set kana mode")
-        // Toggle IME via virtual key event (same as `osascript -e '... key code 102'`)
+        print("Set kana mode")
+        // Set to kana
         simulateKeyPress(104)
     }
 
