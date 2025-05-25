@@ -10,6 +10,11 @@ import CoreFoundation
  - On right Command key release, switches to Kana mode.
  */
 final class IMEManager {
+    private var isLeftCommandDown = false
+    private var leftCommandUsedAsModifier = false
+    private var isRightCommandDown = false
+    private var rightCommandUsedAsModifier = false
+
     private static func callback(
         proxy: CGEventTapProxy,
         type: CGEventType,
@@ -26,10 +31,15 @@ final class IMEManager {
             let leftCommandKeyCode: CGKeyCode = 0x37
             if keyCode == leftCommandKeyCode {
                 if flags.contains(.maskCommand) {
-                    // press - do nothing
+                    // left command pressed
+                    imeManager.isLeftCommandDown = true
+                    imeManager.leftCommandUsedAsModifier = false
                 } else {
-                    // release - switch to Eisu
-                    imeManager.switchToEisuMode()
+                    // left command released
+                    if imeManager.isLeftCommandDown && !imeManager.leftCommandUsedAsModifier {
+                        imeManager.switchToEisuMode()
+                    }
+                    imeManager.isLeftCommandDown = false
                 }
                 return Unmanaged.passUnretained(event)
             }
@@ -38,16 +48,28 @@ final class IMEManager {
             let rightCommandKeyCode: CGKeyCode = 0x36
             if keyCode == rightCommandKeyCode {
                 if flags.contains(.maskCommand) {
-                    // press - do nothing
+                    // right command pressed
+                    imeManager.isRightCommandDown = true
+                    imeManager.rightCommandUsedAsModifier = false
                 } else {
-                    // release - switch to Kana
-                    imeManager.switchToKanaMode()
+                    // right command released
+                    if imeManager.isRightCommandDown && !imeManager.rightCommandUsedAsModifier {
+                        imeManager.switchToKanaMode()
+                    }
+                    imeManager.isRightCommandDown = false
                 }
                 return Unmanaged.passUnretained(event)
             }
         }
         // Only interested in keyDown events
         if type == .keyDown {
+            // If any other key is pressed while command is down, mark as modifier usage
+            if imeManager.isLeftCommandDown {
+                imeManager.leftCommandUsedAsModifier = true
+            }
+            if imeManager.isRightCommandDown {
+                imeManager.rightCommandUsedAsModifier = true
+            }
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             print("key", keyCode)
             return Unmanaged.passUnretained(event)
