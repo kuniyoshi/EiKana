@@ -10,8 +10,6 @@ import CoreFoundation
  - On right Command key release, switches to Kana mode.
  */
 final class IMEManager {
-    private var runLoopSource: CFRunLoopSource?
-
     private static func callback(
         proxy: CGEventTapProxy,
         type: CGEventType,
@@ -58,6 +56,7 @@ final class IMEManager {
         return Unmanaged.passUnretained(event)
     }
 
+    private var runLoopSource: CFRunLoopSource?
     private var eventTap: CFMachPort?
 
     init() {
