@@ -75,7 +75,6 @@ class PreferenceData {
     }
 }
 
-
 @main
 struct EiKanaApp: App {
     static var sharedModelContainer: ModelContainer = {
