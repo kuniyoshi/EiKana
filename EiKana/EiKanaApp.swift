@@ -23,6 +23,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
             statusItem?.menu = menu
+
+            // 3分後にステータスバーアイテムを非表示にする
+            DispatchQueue.main.asyncAfter(deadline: .now() + 180) { [weak self] in
+                if let item = self?.statusItem {
+                    NSStatusBar.system.removeStatusItem(item)
+                    self?.statusItem = nil
+                }
+            }
         }
     }
 
