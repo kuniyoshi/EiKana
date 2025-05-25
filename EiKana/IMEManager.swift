@@ -15,6 +15,11 @@ final class IMEManager {
     private var isRightCommandDown = false
     private var rightCommandUsedAsModifier = false
 
+    // 長押し判定用
+    private let commandLongPressThreshold: CFTimeInterval = 0.2
+    private var leftCommandDownTime: CFTimeInterval = 0
+    private var rightCommandDownTime: CFTimeInterval = 0
+
     private static func callback(
         proxy: CGEventTapProxy,
         type: CGEventType,
@@ -34,9 +39,12 @@ final class IMEManager {
                     // left command pressed
                     imeManager.isLeftCommandDown = true
                     imeManager.leftCommandUsedAsModifier = false
+                    imeManager.leftCommandDownTime = CFAbsoluteTimeGetCurrent()
                 } else {
                     // left command released
-                    if imeManager.isLeftCommandDown && !imeManager.leftCommandUsedAsModifier {
+                    // 長押しの場合は修飾キー操作とみなす
+                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.leftCommandDownTime
+                    if imeManager.isLeftCommandDown && !imeManager.leftCommandUsedAsModifier && elapsed <= imeManager.commandLongPressThreshold {
                         imeManager.switchToEisuMode()
                     }
                     imeManager.isLeftCommandDown = false
@@ -51,9 +59,11 @@ final class IMEManager {
                     // right command pressed
                     imeManager.isRightCommandDown = true
                     imeManager.rightCommandUsedAsModifier = false
+                    imeManager.rightCommandDownTime = CFAbsoluteTimeGetCurrent()
                 } else {
                     // right command released
-                    if imeManager.isRightCommandDown && !imeManager.rightCommandUsedAsModifier {
+                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.rightCommandDownTime
+                    if imeManager.isRightCommandDown && !imeManager.rightCommandUsedAsModifier && elapsed <= imeManager.commandLongPressThreshold {
                         imeManager.switchToKanaMode()
                     }
                     imeManager.isRightCommandDown = false
