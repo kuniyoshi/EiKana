@@ -1,59 +1,23 @@
-//
-//  ContentView.swift
-//  EiKana
-//
-//  Created by Koji Kuniyoshi on 2025-05-19.
-//
-
 import SwiftUI
 import SwiftData
+import Foundation
 
 struct ContentView: View {
+    @AppStorage("userName") private var userName: String = ""
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
+        VStack {
+            Text("ようこそ、\(userName)さん！")
+                .font(.headline)
+            TextField("ユーザー名を入力", text: $userName)
+                .textFieldStyle(.roundedBorder)
+                .padding()
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        .padding()
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
