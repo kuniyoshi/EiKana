@@ -53,7 +53,7 @@ final class IMEManager {
             }
 
             // Right Command key code is 0x36 on macOS
-            let rightModifierKeyCode: CGKeyCode = 0x36
+            let rightModifierKeyCode: CGKeyCode = 0x36 // 0x3e
             if keyCode == rightModifierKeyCode {
                 if flags.contains(.maskCommand) {
                     // right command pressed
