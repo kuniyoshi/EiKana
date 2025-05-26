@@ -1,15 +1,18 @@
 import Foundation
 import Carbon
 import CoreFoundation
+import SwiftUI
 
 /**
  Manages input method switching by intercepting Command key events.
 
  - Installs an event tap to listen for keyDown and flagsChanged events.
- - On left Command key release, switches to Eisu mode.
- - On right Command key release, switches to Kana mode.
+ - On left modifier key release, switches to Eisu mode.
+ - On right modifier key release, switches to Kana mode.
  */
 final class IMEManager {
+    @AppStorage("modifierKeyType") private var modifierKeyType: String = "control"
+
     private var isLeftModifierKeyDown = false
     private var leftKeyUsedAsModifier = false
     private var isRightModifierKeyDown = false
@@ -32,10 +35,14 @@ final class IMEManager {
             print("flags", keyCode)
             let flags = event.flags
 
-            // Left Control key code is 0x3B on macOS
-            let leftModifierKeyCode: CGKeyCode = 0x37 // 0x3B
+            let useControl = imeManager.modifierKeyType == "control"
+            let leftModifierKeyCode: CGKeyCode = useControl ? 0x3B : 0x37
+            let leftModifierFlag: CGEventFlags = useControl ? .maskControl : .maskCommand
+            let rightModifierKeyCode: CGKeyCode = useControl ? 0x3E : 0x36
+            let rightModifierFlag: CGEventFlags = useControl ? .maskControl : .maskCommand
+
             if keyCode == leftModifierKeyCode {
-                if flags.contains(.maskControl) {
+                if flags.contains(leftModifierFlag) {
                     // left modifier key pressed
                     imeManager.isLeftModifierKeyDown = true
                     imeManager.leftKeyUsedAsModifier = false
@@ -52,16 +59,15 @@ final class IMEManager {
                 return Unmanaged.passUnretained(event)
             }
 
-            // Right Command key code is 0x36 on macOS
-            let rightModifierKeyCode: CGKeyCode = 0x36 // 0x3e
+            // Right modifier key handling (configurable)
             if keyCode == rightModifierKeyCode {
-                if flags.contains(.maskCommand) {
-                    // right command pressed
+                if flags.contains(rightModifierFlag) {
+                    // right modifier pressed
                     imeManager.isRightModifierKeyDown = true
                     imeManager.rightKeyUsedAsModifier = false
                     imeManager.rightModifierDownTime = CFAbsoluteTimeGetCurrent()
                 } else {
-                    // right command released
+                    // right modifier released
                     let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.rightModifierDownTime
                     if imeManager.isRightModifierKeyDown && !imeManager.rightKeyUsedAsModifier && elapsed <= imeManager.modifierLongPressThreshold {
                         imeManager.switchToKanaMode()
