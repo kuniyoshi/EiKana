@@ -10,15 +10,15 @@ import CoreFoundation
  - On right Command key release, switches to Kana mode.
  */
 final class IMEManager {
-    private var isLeftCommandDown = false
-    private var leftCommandUsedAsModifier = false
-    private var isRightCommandDown = false
-    private var rightCommandUsedAsModifier = false
+    private var isLeftModifierKeyDown = false
+    private var leftKeyUsedAsModifier = false
+    private var isRightModifierKeyDown = false
+    private var rightKeyUsedAsModifier = false
 
     // 長押し判定用
-    private let commandLongPressThreshold: CFTimeInterval = 0.2
-    private var leftCommandDownTime: CFTimeInterval = 0
-    private var rightCommandDownTime: CFTimeInterval = 0
+    private let modifierLongPressThreshold: CFTimeInterval = 0.2
+    private var leftModifierDownTime: CFTimeInterval = 0
+    private var rightModifierDownTime: CFTimeInterval = 0
 
     private static func callback(
         proxy: CGEventTapProxy,
@@ -32,53 +32,53 @@ final class IMEManager {
             print("flags", keyCode)
             let flags = event.flags
 
-            // Left Command key code is 0x37 on macOS
-            let leftCommandKeyCode: CGKeyCode = 0x37
-            if keyCode == leftCommandKeyCode {
-                if flags.contains(.maskCommand) {
-                    // left command pressed
-                    imeManager.isLeftCommandDown = true
-                    imeManager.leftCommandUsedAsModifier = false
-                    imeManager.leftCommandDownTime = CFAbsoluteTimeGetCurrent()
+            // Left Control key code is 0x3B on macOS
+            let leftModifierKeyCode: CGKeyCode = 0x37 // 0x3B
+            if keyCode == leftModifierKeyCode {
+                if flags.contains(.maskControl) {
+                    // left modifier key pressed
+                    imeManager.isLeftModifierKeyDown = true
+                    imeManager.leftKeyUsedAsModifier = false
+                    imeManager.leftModifierDownTime = CFAbsoluteTimeGetCurrent()
                 } else {
-                    // left command released
+                    // left modifier key released
                     // 長押しの場合は修飾キー操作とみなす
-                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.leftCommandDownTime
-                    if imeManager.isLeftCommandDown && !imeManager.leftCommandUsedAsModifier && elapsed <= imeManager.commandLongPressThreshold {
+                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.leftModifierDownTime
+                    if imeManager.isLeftModifierKeyDown && !imeManager.leftKeyUsedAsModifier && elapsed <= imeManager.modifierLongPressThreshold {
                         imeManager.switchToEisuMode()
                     }
-                    imeManager.isLeftCommandDown = false
+                    imeManager.isLeftModifierKeyDown = false
                 }
                 return Unmanaged.passUnretained(event)
             }
 
             // Right Command key code is 0x36 on macOS
-            let rightCommandKeyCode: CGKeyCode = 0x36
-            if keyCode == rightCommandKeyCode {
+            let rightModifierKeyCode: CGKeyCode = 0x36
+            if keyCode == rightModifierKeyCode {
                 if flags.contains(.maskCommand) {
                     // right command pressed
-                    imeManager.isRightCommandDown = true
-                    imeManager.rightCommandUsedAsModifier = false
-                    imeManager.rightCommandDownTime = CFAbsoluteTimeGetCurrent()
+                    imeManager.isRightModifierKeyDown = true
+                    imeManager.rightKeyUsedAsModifier = false
+                    imeManager.rightModifierDownTime = CFAbsoluteTimeGetCurrent()
                 } else {
                     // right command released
-                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.rightCommandDownTime
-                    if imeManager.isRightCommandDown && !imeManager.rightCommandUsedAsModifier && elapsed <= imeManager.commandLongPressThreshold {
+                    let elapsed = CFAbsoluteTimeGetCurrent() - imeManager.rightModifierDownTime
+                    if imeManager.isRightModifierKeyDown && !imeManager.rightKeyUsedAsModifier && elapsed <= imeManager.modifierLongPressThreshold {
                         imeManager.switchToKanaMode()
                     }
-                    imeManager.isRightCommandDown = false
+                    imeManager.isRightModifierKeyDown = false
                 }
                 return Unmanaged.passUnretained(event)
             }
         }
         // Only interested in keyDown events
         if type == .keyDown {
-            // If any other key is pressed while command is down, mark as modifier usage
-            if imeManager.isLeftCommandDown {
-                imeManager.leftCommandUsedAsModifier = true
+            // If any other key is pressed while control or command is down, mark as modifier usage
+            if imeManager.isLeftModifierKeyDown {
+                imeManager.leftKeyUsedAsModifier = true
             }
-            if imeManager.isRightCommandDown {
-                imeManager.rightCommandUsedAsModifier = true
+            if imeManager.isRightModifierKeyDown {
+                imeManager.rightKeyUsedAsModifier = true
             }
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             print("key", keyCode)
