@@ -2,12 +2,10 @@ import SwiftUI
 import SwiftData
 import Foundation
 import ServiceManagement
-
 struct ContentView: View {
     @AppStorage("modifierKeyType") private var modifierKeyType: String = "control"
     @AppStorage("launchAtLogin") private var launchAtLogin: Bool = false
     @Environment(\.modelContext) private var modelContext
-
     var body: some View {
         VStack(spacing: 20) {
             Picker("切り替えキー", selection: $modifierKeyType) {
@@ -16,7 +14,6 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
             .padding()
-
             Toggle("ログイン時に起動", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { oldValue, newValue in
                     updateLaunchAtLogin(newValue)
@@ -28,7 +25,6 @@ struct ContentView: View {
             checkLaunchAtLoginStatus()
         }
     }
-
     private func updateLaunchAtLogin(_ enabled: Bool) {
         if #available(macOS 13.0, *) {
             do {
@@ -43,14 +39,12 @@ struct ContentView: View {
             }
         }
     }
-
     private func checkLaunchAtLoginStatus() {
         if #available(macOS 13.0, *) {
             launchAtLogin = SMAppService.mainApp.status == .enabled
         }
     }
 }
-
 #Preview {
     ContentView()
 }
