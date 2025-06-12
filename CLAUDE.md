@@ -29,6 +29,10 @@ xcodebuild test -scheme EiKana -project EiKana.xcodeproj -destination 'platform=
 ### Linting/Formatting
 The project uses a git pre-commit hook to remove trailing whitespace from Swift files. There is no additional linting setup.
 
+## Workflow Notes
+
+- After editing any .swift file, run bin/trim-trailing-whitespace.pl to remove trailing whitespace.
+
 ## Architecture
 
 ### Core Components
